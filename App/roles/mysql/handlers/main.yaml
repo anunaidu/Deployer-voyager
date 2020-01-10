@@ -1,0 +1,11 @@
+- name: start-mysql
+  systemd:
+    name: mysql
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: restart-mysql
+  service:
+    name: mysql
+    state: restarted

@@ -1,0 +1,56 @@
+---
+#Create Repo if OS is red hat
+- name: Download MySQL Community Repo
+  get_url: url=http://repo.mysql.com/mysql-community-release-el7-7.noarch.rpm dest=/tmp/mysql-community-release-el7-7.noarch.rpm
+  tags:
+    - never
+    - epel
+
+- name: Install MySQL Community Repo
+  command: /bin/rpm -ivh /tmp/mysql-community-release-el7-7.noarch.rpm
+  register: mysql_repo_result
+  failed_when: "'conflict' in mysql_repo_result.stderr"
+  args:
+      warn: no
+  tags:
+    - never 
+    - epel
+
+# Install mysql Packages
+- name: Install the MySQL packages
+  package:
+         name: "{{ item }}"
+         state: present
+         update_cache: "{{ UPDATE_PACKAGE_MANAGER }}"
+  with_items: 
+    - "{{ MYSQL_PACKAGE_MANAGER }}"
+    - "{{ MYSQL_PACKAGE_INSTALLATION }}"
+  notify:
+       - start-mysql
+  tags:
+    - always
+      
+#Copy the query
+- name: copy the query
+  template:
+    src: "query.yaml"
+    dest: "{{ MYSQL_SETUP_DIR }}/query.sql"
+  tags: 
+    - always 
+
+# Copy the db_scripts
+- name: Copy the db script
+  copy:
+    src: "create_db.sh"
+    dest: "{{ MYSQL_SETUP_DIR }}"
+    mode: "0755"
+  tags:
+    - always
+
+#Run the Database Script
+- name: run the query
+  shell: "./create_db.sh {{ MYSQL_ROOT_USER }} {{ MYSQL_ROOT_PASSWORD }} {{ MYSQL_SETUP_DIR }}/query.sql"
+  args:
+    chdir: "{{ MYSQL_SETUP_DIR }}"
+  tags:
+    - always

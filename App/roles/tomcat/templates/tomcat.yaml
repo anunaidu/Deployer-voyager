@@ -1,0 +1,22 @@
+[Unit]
+Description=Bharath App server Engine
+After=network.target
+
+[Service]
+Type=forking
+
+User=tomcat
+Group=tomcat
+
+Environment="JAVA_HOME={{ JAVA_HOME }}"
+Environment="JAVA_OPTS=-Djava.security.egd=file:///dev/urandom -Djava.awt.headless=true"
+Environment="CATALINA_BASE={{TOMCAT_HOME_DIR }}"
+Environment="CATALINA_HOME={{TOMCAT_HOME_DIR }}"
+Environment="CATALINA_PID={{TOMCAT_HOME_DIR }}/temp/tomcat.pid"
+Environment="CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
+
+ExecStart={{TOMCAT_HOME_DIR }}/bin/startup.sh
+ExecStop={{TOMCAT_HOME_DIR }}/bin/shutdown.sh
+
+[Install]
+WantedBy=multi-user.target
