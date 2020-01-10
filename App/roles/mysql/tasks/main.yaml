@@ -1,15 +1,17 @@
 ---
 #Create Repo if OS is red hat
-- name: insall EPEL 6.8 repository
-  shell: /bin/rpm -ivh http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm creates=/etc/yum.repos.d/epel.repo
-  tags: 
+- name: Download MySQL Community Repo
+  get_url: url=http://repo.mysql.com/mysql-community-release-el7-7.noarch.rpm dest=/tmp/mysql-community-release-el7-7.noarch.rpm
+  tags:
     - never
     - epel
-- name: enable EPEL repo
-  ini_file: dest=/etc/yum.repos.d/epel.repo
-            section=epel
-            option=enabled
-            value=1
+
+- name: Install MySQL Community Repo
+  command: /bin/rpm -ivh /tmp/mysql-community-release-el7-7.noarch.rpm
+  register: mysql_repo_result
+  failed_when: "'conflict' in mysql_repo_result.stderr"
+  args:
+      warn: no
   tags:
     - never 
     - epel
@@ -24,32 +26,31 @@
     - "{{ MYSQL_PACKAGE_MANAGER }}"
     - "{{ MYSQL_PACKAGE_INSTALLATION }}"
   notify:
-    - start-mysql
-
+       - start-mysql
+  tags:
+    - always
+      
 #Copy the query
 - name: copy the query
   template:
     src: "query.yaml"
-    dest: "{{ MYSQL_SETUP_DIR }}/query.sql" 
+    dest: "{{ MYSQL_SETUP_DIR }}/query.sql"
+  tags: 
+    - always 
 
 # Copy the db_scripts
 - name: Copy the db script
   copy:
-          src: "create_db.sh"
-          dest: "{{ MYSQL_SETUP_DIR }}"
-          mode: "0755"
+    src: "create_db.sh"
+    dest: "{{ MYSQL_SETUP_DIR }}"
+    mode: "0755"
+  tags:
+    - always
 
 #Run the Database Script
 - name: run the query
   shell: "./create_db.sh {{ MYSQL_ROOT_USER }} {{ MYSQL_ROOT_PASSWORD }} {{ MYSQL_SETUP_DIR }}/query.sql"
   args:
-      chdir: "{{ MYSQL_SETUP_DIR }}"
-  register: db_creation_out
-
-- debug: 
-    msg: "db_creation is successfull."
-  when: db_creation_out.rc == 0
-
-- debug: 
-    msg: "dbcreation unsuccessfull"
-  when: db_creation_out.rc == 1
+    chdir: "{{ MYSQL_SETUP_DIR }}"
+  tags:
+    - always
