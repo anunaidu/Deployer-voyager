@@ -1,7 +1,0 @@
----
-- hosts: "{{ hosts | default('tomcat') }}"
-  user: "{{ USER }}"
-  become: true
-  gather_facts: false
-  roles:
-    - tomcat

@@ -1,7 +1,0 @@
----
-- hosts: mysql
-  user: "{{ USER }}"
-  become: true
-  gather_facts: false
-  roles:
-    - mysql

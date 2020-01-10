@@ -1,7 +1,0 @@
----
-- hosts: java
-  user: "{{ USER }}"
-  become: true
-  gather_facts: false
-  roles:
-    - java
